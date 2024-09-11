@@ -41,19 +41,34 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setAlertMessage(null); // Clear any previous alerts
-
+  
     try {
       const response = await _createlogin("/api/auth/login", formData);
-      const { token } = response;
 
+      
+  
+      // Extract the values from the response
+      const { token, _id, first_name, last_name, email } = response;
+  
       if (typeof window !== "undefined") {
+        // Save token in localStorage
         localStorage.setItem("token", token);
+  
+        // Save user details in localStorage as a JSON string
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ _id, first_name, last_name, email })
+        );
       }
-
+  
+      // Clear any existing errors and show success message
       setErrors({});
       setAlertMessage({ type: "success", message: "Login successful!" });
+  
+      // Redirect to admin dashboard after 2 seconds
       setTimeout(() => router.push("/admin/admin-dashboard"), 2000);
     } catch (error) {
+      // Handle error and show message
       const errMsg = error.response?.data?.errors || { general: "An error occurred. Please try again." };
       setErrors(errMsg);
       setAlertMessage({ type: "error", message: "Login failed! Check your credentials and try again." });
@@ -61,6 +76,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);

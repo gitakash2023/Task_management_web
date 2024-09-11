@@ -6,7 +6,7 @@ import NewTaskForm from '../../app/admin/tasks/tasks-components/NewTaskForm';
 import TasksList from '../../app/admin/tasks/tasks-components/TasksList';
 import { _getAll } from "@/utils/apiUtils";
 
-function DashboardBody() {
+function TasksScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskListData, setTaskListData] = useState([]);
@@ -36,16 +36,19 @@ function DashboardBody() {
 
   const updateTaskList = async () => {
     try {
-      setLoadingData(true); // Set loading state
-      const response = await _getAll(`/api/tasks`);
+      setLoadingData(true);
+      const userId = JSON.parse(localStorage.getItem('user'))?._id;
+
+      if (!userId) {
+        throw new Error("User ID not found in localStorage");
+      }
+
+      const response = await _getAll(`/api/tasks?userId=${userId}`);
       setTaskListData(response);
     } catch (error) {
-      console.error(
-        "Failed to fetch task data. Please try again later.",
-        error
-      );
+      console.error("Failed to fetch task data. Please try again later.", error);
     } finally {
-      setLoadingData(false); // Clear loading state
+      setLoadingData(false);
     }
   };
 
@@ -61,15 +64,7 @@ function DashboardBody() {
         </div>
 
         <div style={{ display: "flex" }}>
-          <div style={{ margin: "10px" }}>
-            <Button
-              variant="contained"
-              startIcon={<BsDownload style={{ fontSize: "1.2em" }} />}
-              disabled={loadingData} // Disable button while loading data
-            >
-              {loadingData ? <CircularProgress size={24} /> : "Download as Excel"}
-            </Button>
-          </div>
+          
           <div style={{ margin: "10px" }}>
             <Button
               variant="contained"
@@ -103,4 +98,4 @@ function DashboardBody() {
   );
 }
 
-export default DashboardBody;
+export default TasksScreen;

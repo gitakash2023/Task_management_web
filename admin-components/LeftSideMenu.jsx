@@ -5,7 +5,7 @@ import MenuItem from '../common-components/MenuItem';
 const LeftSideMenu = () => {
   return (
     <>
-      <div className="bg-light text-white p-4" style={{ height: "80vh" }}>
+      <div className="bg-light text-white p-4" style={{ height: "100vh" }}>
         <ul className="list-unstyled">
           <MenuItem
             href="/admin/admin-dashboard"

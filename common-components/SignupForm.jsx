@@ -1,20 +1,20 @@
 "use client"
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+import { useRouter } from 'next/navigation'; 
 import { TextField, Button, Typography, CircularProgress, Box, Container, IconButton, InputAdornment, Alert } from '@mui/material';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { Visibility, VisibilityOff } from '@mui/icons-material'; 
-import { useFormik } from 'formik'; // Import useFormik from Formik
+import { useFormik } from 'formik'; 
 import { _create } from '../utils/apiUtils'; 
 import Logo from './header-components/Logo'; 
 import Link from 'next/link';
 
 const SignupForm = () => {
-  const router = useRouter(); // Initialize useRouter hook
+  const router = useRouter(); 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [generalError, setGeneralError] = useState(''); // Added general error state
+  const [generalError, setGeneralError] = useState(''); 
 
   // Initialize Formik
   const formik = useFormik({
@@ -47,13 +47,13 @@ const SignupForm = () => {
     onSubmit: async (values) => {
       setLoading(true);
       setSuccessMessage('');
-      setGeneralError(''); // Reset general error on submission
+      setGeneralError(''); 
 
       try {
         await _create('/api/auth/register', values);
-        setSuccessMessage('Registration successful! Please check your email to verify your account.');
+        setSuccessMessage('Registration successful! ');
         setTimeout(() => {
-          router.push('/auth/login'); // Navigate to login page after 2 seconds
+          router.push('/auth/login'); 
         }, 2000);
       } catch (error) {
         setGeneralError(error?.response?.data?.message || 'An error occurred. Please try again.');

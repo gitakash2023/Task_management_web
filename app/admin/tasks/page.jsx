@@ -1,7 +1,7 @@
 // pages/admin/Companies.js
 "use client"
 import Layout from "../../../admin-components/Layout"
-import DashboardBody from "../../../admin-components/dashborad/Dashboardbody"
+import DashboardBody from "../../../admin-components/dashborad/TasksScreen"
 
 const Tasks = () => {
   return (

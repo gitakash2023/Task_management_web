@@ -7,15 +7,22 @@ import Logo from './header-components/Logo';
 import { _create } from "../utils/apiUtils";
 
 const Header = () => {
-  const [userEmail] = useState('mediatechtemple@gmail.com');
-  const userInitial = userEmail.substring(0, 1);
-
+  // State to store user data
+  const [user, setUser] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const router = useRouter();
+
+  // Fetch user details from localStorage on component mount
+  useEffect(() => {
+    const userDetails = JSON.parse(localStorage.getItem('user'));
+    if (userDetails) {
+      setUser(userDetails); // Set user data to state
+    }
+  }, []);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -37,6 +44,7 @@ const Header = () => {
         setSnackbarMessage('Logout successful');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
+        localStorage.removeItem('user'); // Remove user details from localStorage
         router.push('/auth/login');
       } else {
         setSnackbarMessage('Logout failed');
@@ -52,59 +60,14 @@ const Header = () => {
     handleClose();
   };
 
-  useEffect(() => {
-    const handleHomeClick = () => {
-      if (typeof window !== 'undefined') {
-        const userDetails = JSON.parse(localStorage.getItem('userDetails'));
-        const userRole = userDetails?.user_role;
+  
 
-        switch (userRole) {
-          case 1:
-            router.push("/admin/admin-dashboard");
-            break;
-          case 2:
-            router.push("/client/client-dashboard");
-            break;
-          case 3:
-            router.push("/admin/candidates/add-candidates");
-            break;
-          case 4:
-            router.push("/geninfo/dashboard");
-            break;
-          case 5:
-            router.push("/educationinfo/dashboard");
-            break;
-          case 6:
-            router.push("/addressinfo/dashboard");
-            break;
-          case 7:
-            router.push("/cibilinfo/dashboard");
-            break;
-          case 8:
-            router.push("/referenceinfo/dashboard");
-            break;
-          case 9:
-            router.push("/experienceinfo/dashboard");
-            break;
-          default:
-            setSnackbarMessage('Invalid user role.');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-        }
-      }
-    };
 
-    const homeButton = document.getElementById('home-button');
-    if (homeButton) {
-      homeButton.addEventListener('click', handleHomeClick);
-    }
-
-    return () => {
-      if (homeButton) {
-        homeButton.removeEventListener('click', handleHomeClick);
-      }
-    };
-  }, [router]);
+  // Function to capitalize the first letter of the first name
+  const capitalizeFirstName = (name) => {
+    if (!name) return '';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
 
   return (
     <AppBar position="static" style={{ backgroundColor: '#f5f5f5' }}>
@@ -112,13 +75,15 @@ const Header = () => {
         <Box sx={{ flexGrow: 1 }}>
           <Logo />
         </Box>
+        {/* Display "Welcome, First Name" with capitalized first letter */}
         <Typography 
           variant="h6" 
           component="div" 
-          sx={{ flexGrow: 1, textAlign: 'center', color: 'blue', fontSize: '1rem', cursor: 'pointer' }}
-          id="home-button" // Add id for home button
+          sx={{ flexGrow: 1, textAlign: 'center', color: 'blue', fontSize: '1.2rem', cursor: 'pointer', fontWeight: 'bold' }}
+          id="home-button"
+          
         >
-          Home
+          {user.first_name ? `Welcome, ${capitalizeFirstName(user.first_name)}` : 'Welcome'} {/* Capitalize first name */}
         </Typography>
         <div>
           <IconButton
@@ -146,7 +111,7 @@ const Header = () => {
             open={open}
             onClose={handleClose}
           >
-            <MenuItem disabled>{userEmail}</MenuItem>
+            <MenuItem disabled>{user.email}</MenuItem> {/* Show user email */}
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <Logout fontSize="small" />
