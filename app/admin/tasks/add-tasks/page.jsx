@@ -1,5 +1,6 @@
 import React from 'react'
-import NewTasksForm from "../companies-components/NewTasksForm"
+import  NewTasksForm from "../tasks-components/NewTaskForm"
+
 
 function page() {
   return (
