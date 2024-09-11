@@ -17,17 +17,7 @@ const LeftSideMenu = () => {
             icon={FaTasks}
             label="Tasks"
           />
-          <MenuItem
-            href="/admin/calendar"
-            icon={FaCalendarAlt}
-            label="Calendar"
-          />
-         
-          <MenuItem
-            href="/admin/settings"
-            icon={FaUserCog}
-            label="Settings"
-          />
+          
         </ul>
       </div>
     </>

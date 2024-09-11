@@ -1,28 +1,21 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Select, MenuItem, FormControl, InputLabel, Typography, Box, TextField } from '@mui/material';
+import { IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Select, MenuItem, FormControl, InputLabel, Typography, Box, TextField, InputAdornment } from '@mui/material';
 import { Delete, Edit, Preview } from '@mui/icons-material';
-import { _delete, _update } from '@/utils/apiUtils'; // Assuming _update is used for updating tasks
-import staticColumns from './columns'; // Assuming you have a separate file for task columns
+import { _delete, _update } from '@/utils/apiUtils'; 
+import staticColumns from './columns'; 
+import SearchIcon from '@mui/icons-material/Search';
 
-export default function TasksList({ taskListData, onEdit, updateTaskList }) {
+export default function TasksList({ taskListData, onEdit, updateTaskList, searchQuery, setSearchQuery, statusFilter, setStatusFilter }) {
     const [filteredTaskListData, setFilteredTaskListData] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
     const [dialogVisibility, setDialogVisibility] = useState({ type: null, open: false });
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        // Map MongoDB _id to id for DataGrid
-        const tasksWithId = taskListData.map(task => ({ ...task, id: task._id }));
-        setFilteredTaskListData(tasksWithId);
-    }, [taskListData]);
-
-    useEffect(() => {
         filterData(searchQuery, statusFilter);
-    }, [searchQuery, statusFilter]);
+    }, [searchQuery, statusFilter, taskListData]);
 
     const handleErrorMessage = (message) => {
         setErrorMessage(message);
@@ -71,10 +64,10 @@ export default function TasksList({ taskListData, onEdit, updateTaskList }) {
     };
 
     const handleStatusChange = async (task, newStatus) => {
-        const updatedTask = { ...task, status: newStatus }; // Ensure 'status' is included
+        const updatedTask = { ...task, status: newStatus };
         try {
-          await _update('/api/tasks', task._id, updatedTask); // Make sure this matches the backend endpoint
-          updateTaskList(); // Refresh task list or state
+          await _update('/api/tasks', task._id, updatedTask); 
+          updateTaskList(); 
         } catch (error) {
           handleErrorMessage('Failed to update task status. Please try again later.');
         }
@@ -97,15 +90,22 @@ export default function TasksList({ taskListData, onEdit, updateTaskList }) {
     return (
         <Box sx={{ padding: '16px', height: 440, width: '100%' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                <TextField
-                    variant="outlined"
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={handleSearch}
-                    sx={{ marginLeft: '16px', flexGrow: 1 }}
-                />
+            <TextField
+            variant="outlined"
+            placeholder="Search tasks..."
+            value={searchQuery}
+            onChange={handleSearch}
+            sx={{ marginLeft: '16px', flexGrow: 1 }}
+            InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                        <SearchIcon />
+                    </InputAdornment>
+                ),
+            }}
+        />
+ 
                 <FormControl sx={{ minWidth: 150, marginLeft: '16px' }}>
-                   
                     <Select
                         value={statusFilter}
                         onChange={handleStatusFilterChange}
@@ -128,16 +128,16 @@ export default function TasksList({ taskListData, onEdit, updateTaskList }) {
                         headerName: 'Status',
                         width: 150,
                         renderCell: (params) => (
-                            <Select
-                                value={params.row.status || 'ToDo'}
-                                onChange={(e) => handleStatusChange(params.row, e.target.value)}
-                                displayEmpty
-                                inputProps={{ 'aria-label': 'Task Status' }}
-                            >
-                                <MenuItem value="ToDo">ToDo</MenuItem>
-                                <MenuItem value="InProgress">In Progress</MenuItem>
-                                <MenuItem value="Complete">Complete</MenuItem>
-                            </Select>
+                            <FormControl sx={{ minWidth: 150 }}>
+                                <Select
+                                    value={params.row.status}
+                                    onChange={(event) => handleStatusChange(params.row, event.target.value)}
+                                >
+                                    <MenuItem value="ToDo">ToDo</MenuItem>
+                                    <MenuItem value="InProgress">In Progress</MenuItem>
+                                    <MenuItem value="Complete">Complete</MenuItem>
+                                </Select>
+                            </FormControl>
                         ),
                     },
                     {
@@ -146,50 +146,60 @@ export default function TasksList({ taskListData, onEdit, updateTaskList }) {
                         width: 200,
                         renderCell: (params) => (
                             <>
-                                <IconButton aria-label="edit" color="primary" onClick={() => handleActionInitiation('edit', params.row)}>
+                                <IconButton color="primary" onClick={() => handleActionInitiation('edit', params.row)}>
                                     <Edit />
                                 </IconButton>
-                                <IconButton aria-label="delete" color="secondary" onClick={() => handleActionInitiation('delete', params.row)}>
+                                <IconButton color="error" onClick={() => handleActionInitiation('delete', params.row)}>
                                     <Delete />
                                 </IconButton>
-                                <IconButton aria-label="preview" color="default" onClick={() => handleActionInitiation('preview', params.row)}>
+                                <IconButton color="info" onClick={() => handleActionInitiation('preview', params.row)}>
                                     <Preview />
                                 </IconButton>
                             </>
                         ),
                     },
                 ]}
-                pageSize={5}
-                getRowId={(row) => row._id} // Using 'id' which maps to MongoDB _id
+                pageSize={10}
+                rowsPerPageOptions={[5, 10, 20]}
+                getRowId={(row) => row._id} 
             />
-
-            {/* Delete Task */}
-            <Dialog open={dialogVisibility.type === 'delete' && dialogVisibility.open} onClose={handleCloseDialog}>
-                <DialogTitle>Delete Task</DialogTitle>
-                <DialogContent>Are you sure you want to delete this task?</DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">Cancel</Button>
-                    <Button onClick={confirmDelete} color="primary" autoFocus>Delete</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Preview Task */}
-            <Dialog open={dialogVisibility.type === 'preview' && dialogVisibility.open} onClose={handleCloseDialog}>
-                <DialogTitle>Preview Task</DialogTitle>
+            <Dialog open={dialogVisibility.open} onClose={handleCloseDialog}>
+                <DialogTitle>
+                    {dialogVisibility.type === 'delete' ? 'Confirm Delete' : 'Preview Task'}
+                </DialogTitle>
                 <DialogContent>
-                    <pre>{JSON.stringify(selectedTask, null, 2)}</pre>
+                    {dialogVisibility.type === 'delete' ? (
+                        <Typography>Are you sure you want to delete this task?</Typography>
+                    ) : (
+                        <Box>
+                            {selectedTask && (
+                                <>
+                                    <Typography variant="h6">Task Preview</Typography>
+                                    <Typography>Title: {selectedTask.title}</Typography>
+                                    <Typography>Description: {selectedTask.description}</Typography>
+                                    <Typography>Status: {selectedTask.status}</Typography>
+                                    <Typography>Created At: {new Date(selectedTask.createdAt).toLocaleString()}</Typography>
+                                </>
+                            )}
+                        </Box>
+                    )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">Close</Button>
+                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    {dialogVisibility.type === 'delete' && (
+                        <Button onClick={confirmDelete} color="error">
+                            Delete
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
-
-            {/* Error Dialog */}
-            <Dialog open={dialogVisibility.type === 'error' && dialogVisibility.open} onClose={handleCloseDialog}>
+            <Dialog open={dialogVisibility.type === 'error'} onClose={handleCloseDialog}>
                 <DialogTitle>Error</DialogTitle>
-                <DialogContent>{errorMessage}</DialogContent>
+                <DialogContent>
+                    <Typography>{errorMessage}</Typography>
+                </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">Close</Button>
+                    <Button onClick={handleCloseDialog}>Close</Button>
                 </DialogActions>
             </Dialog>
         </Box>

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Grid, CircularProgress } from "@mui/material";
-import { BsPlus, BsDownload } from "react-icons/bs";
+import { BsPlus } from "react-icons/bs";
 import NewTaskForm from '../../app/admin/tasks/tasks-components/NewTaskForm';
 import TasksList from '../../app/admin/tasks/tasks-components/TasksList';
 import { _getAll } from "@/utils/apiUtils";
@@ -10,22 +10,26 @@ function TasksScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskListData, setTaskListData] = useState([]);
-  const [loadingData, setLoadingData] = useState(false); // State for loading data
-  const [loadingModal, setLoadingModal] = useState(false); // State for loading modal open
+  const [loadingData, setLoadingData] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  // Define searchQuery and statusFilter state variables
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
     updateTaskList();
-  }, []);
+  }, [searchQuery, statusFilter]); // Add searchQuery and statusFilter as dependencies
 
   const handleOpenModal = async (task) => {
     try {
-      setLoadingModal(true); // Set loading state for opening modal
+      setLoadingModal(true);
       setSelectedTask(task);
       setIsModalOpen(true);
     } catch (error) {
       console.error("Failed to open modal:", error);
     } finally {
-      setLoadingModal(false); // Clear loading state
+      setLoadingModal(false);
     }
   };
 
@@ -43,8 +47,15 @@ function TasksScreen() {
         throw new Error("User ID not found in localStorage");
       }
 
-      const response = await _getAll(`/api/tasks?userId=${userId}`);
-      setTaskListData(response);
+      // Use the defined searchQuery and statusFilter state variables
+      const response = await _getAll(`/api/tasks?userId=${userId}&search=${searchQuery}&status=${statusFilter}`);
+      
+      // Extract task data from response
+      if (response && response.data) {
+        setTaskListData(response.data); // Use response.data directly
+      } else {
+        console.warn("Response data is not in expected format");
+      }
     } catch (error) {
       console.error("Failed to fetch task data. Please try again later.", error);
     } finally {
@@ -64,13 +75,12 @@ function TasksScreen() {
         </div>
 
         <div style={{ display: "flex" }}>
-          
           <div style={{ margin: "10px" }}>
             <Button
               variant="contained"
               startIcon={<BsPlus style={{ fontSize: "1.2em" }} />}
               onClick={handleNewTaskClick}
-              disabled={loadingModal} // Disable button while loading modal
+              disabled={loadingModal}
             >
               {loadingModal ? <CircularProgress size={24} /> : "New Task"}
             </Button>
@@ -82,10 +92,14 @@ function TasksScreen() {
         onEdit={handleOpenModal}
         onAdd={handleOpenModal}
         updateTaskList={updateTaskList}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
       />
       <Modal open={isModalOpen} onClose={handleCloseModal}>
-        <Grid>
-          <Grid>
+        <Grid container spacing={2} style={{ padding: '16px' }}>
+          <Grid item xs={12}>
             <NewTaskForm
               task={selectedTask}
               onClose={handleCloseModal}
