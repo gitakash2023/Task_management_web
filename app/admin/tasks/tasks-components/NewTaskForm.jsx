@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { FaFileAlt, FaCalendarAlt, FaUser, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { FaFileAlt, FaCalendarAlt } from "react-icons/fa";
 import Snackbar from "@mui/material/Snackbar";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
@@ -22,16 +22,9 @@ const inputFields = [
     name: "description",
     placeholder: "Task Description",
     label: "Description",
-    type: "text",
+    type: "textarea",  // Specify the type as textarea
     icon: <FaFileAlt />,
   },
-  // {
-  //   name: "status",
-  //   placeholder: "Task Status",
-  //   label: "Status",
-  //   type: "text",
-  //   icon: <FaCheckCircle />,
-  // },
   {
     name: "due_date",
     placeholder: "Due Date",
@@ -39,7 +32,6 @@ const inputFields = [
     type: "date",
     icon: <FaCalendarAlt />,
   },
-  
 ];
 
 const TaskForm = ({ task, onClose, updateTaskList }) => {
@@ -51,9 +43,7 @@ const TaskForm = ({ task, onClose, updateTaskList }) => {
   const initialValues = {
     title: task ? task.title : "",
     description: task ? task.description : "",
-    // status: task ? task.status : "To Do",
     due_date: task ? task.due_date.split("T")[0] : "",
-    // user: task ? task.user : "",
   };
 
   useEffect(() => {
@@ -117,8 +107,6 @@ const TaskForm = ({ task, onClose, updateTaskList }) => {
                 inputFields.forEach((field) => {
                   if (!values[field.name]) {
                     errors[field.name] = `${field.label} is required`;
-                  } else if (field.name === "due_date" && !values.due_date) {
-                    errors.due_date = "Due Date is required";
                   }
                 });
                 return errors;
@@ -128,23 +116,43 @@ const TaskForm = ({ task, onClose, updateTaskList }) => {
                 <Form>
                   {inputFields.map((field, index) => (
                     <div key={index} className="mb-3">
+                      <label className="form-label" htmlFor={field.name} style={{ fontWeight: "bold" }}>
+                        {field.label}
+                      </label>
                       <div className="input-group">
                         <span className="input-group-text" style={{ backgroundColor: "#f3f4f6" }}>
                           {field.icon}
                         </span>
-                        <Field
-                          type={field.type}
-                          name={field.name}
-                          placeholder={field.placeholder}
-                          className="form-control"
-                          style={{
-                            backgroundColor: "#f3f4f6",
-                            color: "black",
-                            fontSize: "1rem",
-                            border: "1px solid #ced4da",
-                            borderRadius: "0.25rem",
-                          }}
-                        />
+                        {field.type === "textarea" ? (
+                          <Field
+                            as="textarea"
+                            name={field.name}
+                            placeholder={field.placeholder}
+                            className="form-control"
+                            rows="4" // Makes the textarea taller by default
+                            style={{
+                              backgroundColor: "#f3f4f6",
+                              color: "black",
+                              fontSize: "1rem",
+                              border: "1px solid #ced4da",
+                              borderRadius: "0.25rem",
+                            }}
+                          />
+                        ) : (
+                          <Field
+                            type={field.type}
+                            name={field.name}
+                            placeholder={field.type !== "date" ? field.placeholder : ""}
+                            className="form-control"
+                            style={{
+                              backgroundColor: "#f3f4f6",
+                              color: "black",
+                              fontSize: "1rem",
+                              border: "1px solid #ced4da",
+                              borderRadius: "0.25rem",
+                            }}
+                          />
+                        )}
                       </div>
                       <ErrorMessage
                         name={field.name}

@@ -130,7 +130,7 @@ export default function TasksList({ taskListData, onEdit, updateTaskList, search
                         renderCell: (params) => (
                             <FormControl sx={{ minWidth: 150 }}>
                                 <Select
-                                    value={params.row.status}
+                                    value={params.row.status ? params.row.status : "ToDo"}  // Use the backend value, defaulting to "ToDo" if undefined
                                     onChange={(event) => handleStatusChange(params.row, event.target.value)}
                                 >
                                     <MenuItem value="ToDo">ToDo</MenuItem>
@@ -139,7 +139,9 @@ export default function TasksList({ taskListData, onEdit, updateTaskList, search
                                 </Select>
                             </FormControl>
                         ),
-                    },
+                    }
+                    ,
+                    
                     {
                         field: 'actions',
                         headerName: 'Actions',

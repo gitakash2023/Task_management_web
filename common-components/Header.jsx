@@ -4,7 +4,6 @@ import { AppBar, Toolbar, Typography, Box, IconButton, Menu, MenuItem, ListItemI
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Logout from '@mui/icons-material/Logout';
 import Logo from './header-components/Logo';
-import { _create } from "../utils/apiUtils";
 
 const Header = () => {
   // State to store user data
@@ -36,32 +35,23 @@ const Header = () => {
     setSnackbarOpen(false);
   };
 
-  const handleLogout = async () => {
-    try {
-      const response = await _create('/users/logout', {});
+  // Client-side logout: clear localStorage and redirect to login
+  const handleLogout = () => {
+    // Clear user details from localStorage
+    localStorage.removeItem('user');
 
-      if (response) {
-        setSnackbarMessage('Logout successful');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        localStorage.removeItem('user'); // Remove user details from localStorage
-        router.push('/auth/login');
-      } else {
-        setSnackbarMessage('Logout failed');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-      }
-    } catch (error) {
-      setSnackbarMessage('An error occurred during logout');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      console.error('An error occurred:', error);
-    }
+    // Show success message
+    setSnackbarMessage('Logout successful');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+
+    // Redirect to login page after short delay
+    setTimeout(() => {
+      router.push('/auth/login');
+    }, 1500);
+
     handleClose();
   };
-
-  
-
 
   // Function to capitalize the first letter of the first name
   const capitalizeFirstName = (name) => {
@@ -75,15 +65,13 @@ const Header = () => {
         <Box sx={{ flexGrow: 1 }}>
           <Logo />
         </Box>
-        {/* Display "Welcome, First Name" with capitalized first letter */}
         <Typography 
           variant="h6" 
           component="div" 
           sx={{ flexGrow: 1, textAlign: 'center', color: 'blue', fontSize: '1.2rem', cursor: 'pointer', fontWeight: 'bold' }}
           id="home-button"
-          
         >
-          {user.first_name ? `Welcome, ${capitalizeFirstName(user.first_name)}` : 'Welcome'} {/* Capitalize first name */}
+          {user.first_name ? `Welcome, ${capitalizeFirstName(user.first_name)}` : 'Welcome'}
         </Typography>
         <div>
           <IconButton
@@ -111,7 +99,7 @@ const Header = () => {
             open={open}
             onClose={handleClose}
           >
-            <MenuItem disabled>{user.email}</MenuItem> {/* Show user email */}
+            <MenuItem disabled>{user.email}</MenuItem>
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <Logout fontSize="small" />
